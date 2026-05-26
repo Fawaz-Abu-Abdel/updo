@@ -8,6 +8,13 @@ import (
 	"github.com/Owloops/updo/net"
 )
 
+const (
+	testURL    = "https://example.com"
+	exampleVal = "Example"
+	googleVal  = "Google"
+	githubVal  = "GitHub"
+)
+
 func TestLoadConfig(t *testing.T) {
 	configContent := `
 [global]
@@ -17,8 +24,8 @@ follow_redirects = false
 receive_alert = false
 
 [[targets]]
-url = "https://example.com"
-name = "Example"
+url = "` + testURL + `"
+name = "` + exampleVal + `"
 refresh_interval = 60
 timeout = 20
 method = "POST"
@@ -58,11 +65,11 @@ method = "POST"
 	}
 
 	target := config.Targets[0]
-	if target.URL != "https://example.com" {
-		t.Errorf("Expected URL=https://example.com, got %s", target.URL)
+	if target.URL != testURL {
+		t.Errorf("Expected URL=%s, got %s", testURL, target.URL)
 	}
-	if target.Name != "Example" {
-		t.Errorf("Expected Name=Example, got %s", target.Name)
+	if target.Name != exampleVal {
+		t.Errorf("Expected Name=%s, got %s", exampleVal, target.Name)
 	}
 	if target.RefreshInterval != 60 {
 		t.Errorf("Expected RefreshInterval=60, got %d", target.RefreshInterval)
@@ -218,7 +225,7 @@ body_size_limit = 0
 func TestBodySizeLimitDefault(t *testing.T) {
 	configContent := `
 [[targets]]
-url = "https://example.com"
+url = "` + testURL + `"
 `
 
 	tmpFile, err := os.CreateTemp("", "test-config-bodysize-default-*.toml")
@@ -254,7 +261,7 @@ url = "https://example.com"
 func TestLoadConfigDefaults(t *testing.T) {
 	configContent := `
 [[targets]]
-url = "https://example.com"
+url = "` + testURL + `"
 `
 
 	tmpFile, err := os.CreateTemp("", "test-config-defaults-*.toml")
@@ -328,9 +335,9 @@ func TestGlobalGetMethods(t *testing.T) {
 func TestFilterTargets(t *testing.T) {
 	config := &Config{
 		Targets: []Target{
-			{URL: "https://example.com", Name: "Example"},
-			{URL: "https://google.com", Name: "Google"},
-			{URL: "https://github.com", Name: "GitHub"},
+			{URL: testURL, Name: exampleVal},
+			{URL: "https://google.com", Name: googleVal},
+			{URL: "https://github.com", Name: githubVal},
 			{URL: "https://unnamed.com"},
 		},
 	}
@@ -348,9 +355,9 @@ func TestFilterTargets(t *testing.T) {
 		},
 		{
 			name:      "only by name",
-			only:      []string{"Example"},
+			only:      []string{exampleVal},
 			expected:  1,
-			expectURL: "https://example.com",
+			expectURL: testURL,
 		},
 		{
 			name:      "only by URL",
@@ -360,7 +367,7 @@ func TestFilterTargets(t *testing.T) {
 		},
 		{
 			name:     "skip by name",
-			skip:     []string{"Google"},
+			skip:     []string{googleVal},
 			expected: 3,
 		},
 		{
@@ -370,7 +377,7 @@ func TestFilterTargets(t *testing.T) {
 		},
 		{
 			name:     "only multiple",
-			only:     []string{"Example", "GitHub"},
+			only:     []string{exampleVal, githubVal},
 			expected: 2,
 		},
 	}
@@ -398,13 +405,13 @@ func TestGetTargetName(t *testing.T) {
 	}{
 		{
 			name:     "with name",
-			target:   Target{Name: "Example", URL: "https://example.com"},
-			expected: "Example",
+			target:   Target{Name: exampleVal, URL: testURL},
+			expected: exampleVal,
 		},
 		{
 			name:     "without name",
-			target:   Target{URL: "https://example.com"},
-			expected: "https://example.com",
+			target:   Target{URL: testURL},
+			expected: testURL,
 		},
 	}
 
@@ -428,22 +435,22 @@ func TestContainsTarget(t *testing.T) {
 	}{
 		{
 			name:     "found by target name",
-			list:     []string{"Example", "Google"},
-			target:   "Example",
-			url:      "https://example.com",
+			list:     []string{exampleVal, googleVal},
+			target:   exampleVal,
+			url:      testURL,
 			expected: true,
 		},
 		{
 			name:     "found by URL",
-			list:     []string{"Example", "https://google.com"},
-			target:   "Google",
+			list:     []string{exampleVal, "https://google.com"},
+			target:   googleVal,
 			url:      "https://google.com",
 			expected: true,
 		},
 		{
 			name:     "not found",
-			list:     []string{"Example", "Google"},
-			target:   "GitHub",
+			list:     []string{exampleVal, googleVal},
+			target:   githubVal,
 			url:      "https://github.com",
 			expected: false,
 		},

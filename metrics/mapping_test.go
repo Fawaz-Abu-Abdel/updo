@@ -9,12 +9,17 @@ import (
 	"github.com/Owloops/updo/net"
 )
 
+const (
+	_testURL  = "https://example.com"
+	_emptyVal = "empty"
+)
+
 func TestMapTargetLabels(t *testing.T) {
-	target := config.Target{Name: "service", URL: "https://example.com"}
+	target := config.Target{Name: "service", URL: _testURL}
 	result := net.WebsiteCheckResult{URL: target.URL, IsUp: true, StatusCode: 200}
 
 	labels := MapTargetLabels(target, result, "us-east-1")
-	expected := map[string]string{"name": "service", "url": "https://example.com", "region": "us-east-1"}
+	expected := map[string]string{"name": "service", "url": _testURL, "region": "us-east-1"}
 
 	for key, want := range expected {
 		if got := labels[key]; got != want {
@@ -24,7 +29,7 @@ func TestMapTargetLabels(t *testing.T) {
 }
 
 func TestMapSeries(t *testing.T) {
-	labels := map[string]string{"name": "test", "url": "https://example.com", "": "empty", "empty": ""}
+	labels := map[string]string{"name": "test", "url": _testURL, "": _emptyVal, _emptyVal: ""}
 	pbLabels := MapSeries("target_up", labels)
 
 	if len(pbLabels) != 3 {
@@ -59,8 +64,8 @@ func TestConvertCheckToTimeSeries(t *testing.T) {
 	}{
 		{
 			"up_target",
-			config.Target{Name: "test", URL: "https://example.com"},
-			net.WebsiteCheckResult{URL: "https://example.com", IsUp: true, StatusCode: 200, ResponseTime: 100 * time.Millisecond},
+			config.Target{Name: "test", URL: _testURL},
+			net.WebsiteCheckResult{URL: _testURL, IsUp: true, StatusCode: 200, ResponseTime: 100 * time.Millisecond},
 			map[string]float64{"target_up": 1.0, "response_time_seconds": 0.1, "http_status_code_total": 1.0},
 		},
 		{
@@ -105,7 +110,7 @@ func TestConvertCheckToTimeSeries(t *testing.T) {
 }
 
 func TestConvertWithTraceInfo(t *testing.T) {
-	target := config.Target{Name: "traced", URL: "https://example.com"}
+	target := config.Target{Name: "traced", URL: _testURL}
 	result := net.WebsiteCheckResult{
 		URL: target.URL, IsUp: true, StatusCode: 200,
 		TraceInfo: &net.HttpTraceInfo{
